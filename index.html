@@ -1,117 +1,196 @@
 <!doctype html>
 <html lang="tr">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Sezar → Atbash → Base64 Şifreleme (Türkçe)</title>
-  <style>
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;margin:18px;color:#111}
-    .card{max-width:900px;margin:auto;background:#f7f7f9;padding:18px;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.06)}
-    textarea{width:100%;min-height:120px;padding:10px;border-radius:6px;border:1px solid #d0d0d5;resize:vertical}
-    .row{display:flex;gap:12px;align-items:center}
-    select,input[type=button]{padding:8px 12px;border-radius:6px;border:1px solid #cfcfd6;background:white}
-    .output{white-space:pre-wrap;background:#fff;padding:12px;border-radius:6px;border:1px solid #e0e0e5;min-height:80px}
-    .controls{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
-    .small{font-size:13px;color:#444}
-    .btn-primary{background:#0b64d6;color:white;border:none}
-  </style>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Sezar → Atbash → Base64 Şifreleme (Türkçe)</title>
+    <style>
+        /* CSS Değişkenleri: Temel renkleri burada tanımlıyoruz */
+        :root {
+            --bg-color: #f7f7f9;
+            --card-bg: #f7f7f9;
+            --text-color: #111;
+            --input-bg: #fff;
+            --input-border: #d0d0d5;
+            --output-border: #e0e0e5;
+            --small-color: #444;
+            --btn-bg: white;
+            --btn-border: #cfcfd6;
+        }
+
+        /* KOYU TEMA için değişken değerlerini değiştirme */
+        .dark-mode {
+            --bg-color: #1a1a1f;
+            --card-bg: #2a2a30;
+            --text-color: #f0f0f5;
+            --input-bg: #3c3c45;
+            --input-border: #555;
+            --output-border: #555;
+            --small-color: #bbb;
+            --btn-bg: #444;
+            --btn-border: #555;
+        }
+        
+        /* Genel Stiller */
+        body{
+            font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
+            margin:18px;
+            color: var(--text-color);
+            background-color: var(--bg-color); /* Değişken kullanıldı */
+            transition: background-color 0.3s, color 0.3s; /* Geçiş animasyonu */
+        }
+        .card{
+            max-width:900px;
+            margin:auto;
+            background: var(--card-bg); /* Değişken kullanıldı */
+            padding:18px;
+            border-radius:8px;
+            box-shadow:0 6px 18px rgba(0,0,0,.06);
+            transition: background-color 0.3s, box-shadow 0.3s;
+        }
+        textarea{
+            width:100%;
+            min-height:120px;
+            padding:10px;
+            border-radius:6px;
+            border:1px solid var(--input-border); /* Değişken kullanıldı */
+            resize:vertical;
+            background-color: var(--input-bg); /* Değişken kullanıldı */
+            color: var(--text-color); /* Değişken kullanıldı */
+        }
+        .row{display:flex;gap:12px;align-items:center}
+        select,input[type=button],#themeToggle{
+            padding:8px 12px;
+            border-radius:6px;
+            border:1px solid var(--btn-border); /* Değişken kullanıldı */
+            background: var(--btn-bg); /* Değişken kullanıldı */
+            color: var(--text-color);
+            cursor: pointer;
+        }
+        .output{
+            white-space:pre-wrap;
+            background: var(--input-bg); /* Değişken kullanıldı */
+            padding:12px;
+            border-radius:6px;
+            border:1px solid var(--output-border); /* Değişken kullanıldı */
+            min-height:80px;
+            color: var(--text-color);
+        }
+        .controls{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+        .small{
+            font-size:13px;
+            color: var(--small-color); /* Değişken kullanıldı */
+        }
+        .btn-primary{
+            background:#0b64d6;
+            color:white;
+            border:none;
+        }
+        /* Tema Değiştirme Butonu Stili */
+        #themeToggle {
+            margin-left: auto; /* Kontrollerin sağına itmek için */
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
-  <div class="card">
-    <h2>Sezar (18) → Atbash → Base64  (Türkçe destekli)</h2>
-    <div class="small">Harfler Türkçe alfabe ile işlenir. Rakam ve semboller değişmeden kalır.</div>
+    <div class="card">
+        <h2>Sezar (18) → Atbash → Base64 (Türkçe destekli)</h2>
+        <div class="small">Harfler Türkçe alfabe ile işlenir. Rakam ve semboller değişmeden kalır.</div>
 
-    <label>Girdi:</label>
-    <textarea id="input"></textarea>
+        <label>Girdi:</label>
+        <textarea id="input"></textarea>
 
-    <div class="controls">
-      <select id="mode">
-        <option value="encrypt">Şifrele (Sezar → Atbash → Base64)</option>
-        <option value="decrypt">Çöz (Base64 → Atbash → Sezar ters)</option>
-      </select>
-      <input type="number" id="shift" value="18" min="0" max="1000" title="Sezar kaydırma sayısı" style="width:86px">
-      <input type="button" id="run" value="Çalıştır" class="btn-primary">
-      <input type="button" id="clear" value="Temizle">
-      <input type="button" id="copyOut" value="Çıktıyı Kopyala">
+        <div class="controls">
+            <select id="mode">
+                <option value="encrypt">Şifrele (Sezar → Atbash → Base64)</option>
+                <option value="decrypt">Çöz (Base64 → Atbash → Sezar ters)</option>
+            </select>
+            <input type="number" id="shift" value="18" min="0" max="1000" title="Sezar kaydırma sayısı" style="width:86px">
+            <input type="button" id="run" value="Çalıştır" class="btn-primary">
+            <input type="button" id="clear" value="Temizle">
+            <input type="button" id="copyOut" value="Çıktıyı Kopyala">
+            
+            <input type="button" id="themeToggle" value="Koyu Tema">
+        </div>
+
+        <label>Çıktı:</label>
+        <div id="output" class="output"></div>
+        <div style="margin-top:12px" class="small">Kullanım: Metni gir, mod seç, Çalıştır. Şifrelenmiş çıktı Base64 formatındadır. Çözme için Base64 metnini yapıştırıp Çöz seç.</div>
     </div>
-
-    <label>Çıktı:</label>
-    <div id="output" class="output"></div>
-    <div style="margin-top:12px" class="small">Kullanım: Metni gir, mod seç, Çalıştır. Şifrelenmiş çıktı Base64 formatındadır. Çözme için Base64 metnini yapıştırıp Çöz seç.</div>
-  </div>
 
 <script>
 const TURK_UP = "ABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ";
 const TURK_LOW = TURK_UP.toLowerCase();
 
 function caesarEncryptTr(text, shift){
-  const n = TURK_UP.length;
-  let out = '';
-  for(const ch of text){
-    if(TURK_UP.includes(ch)){
-      const idx = (TURK_UP.indexOf(ch) + shift) % n;
-      out += TURK_UP[idx];
-    } else if(TURK_LOW.includes(ch)){
-      const idx = (TURK_LOW.indexOf(ch) + shift) % n;
-      out += TURK_LOW[idx];
-    } else {
-      out += ch; // rakam ve sembol olduğu gibi kalır
+    const n = TURK_UP.length;
+    let out = '';
+    for(const ch of text){
+        if(TURK_UP.includes(ch)){
+            const idx = (TURK_UP.indexOf(ch) + shift) % n;
+            out += TURK_UP[idx];
+        } else if(TURK_LOW.includes(ch)){
+            const idx = (TURK_LOW.indexOf(ch) + shift) % n;
+            out += TURK_LOW[idx];
+        } else {
+            out += ch; // rakam ve sembol olduğu gibi kalır
+        }
     }
-  }
-  return out;
+    return out;
 }
 
 function caesarDecryptTr(text, shift){
-  return caesarEncryptTr(text, (TURK_UP.length - (shift % TURK_UP.length)) % TURK_UP.length);
+    return caesarEncryptTr(text, (TURK_UP.length - (shift % TURK_UP.length)) % TURK_UP.length);
 }
 
 function atbashTr(text){
-  let out = '';
-  const n = TURK_UP.length;
-  for(const ch of text){
-    if(TURK_UP.includes(ch)){
-      const idx = TURK_UP.indexOf(ch);
-      out += TURK_UP[n - 1 - idx];
-    } else if(TURK_LOW.includes(ch)){
-      const idx = TURK_LOW.indexOf(ch);
-      out += TURK_LOW[n - 1 - idx];
-    } else {
-      out += ch;
+    let out = '';
+    const n = TURK_UP.length;
+    for(const ch of text){
+        if(TURK_UP.includes(ch)){
+            const idx = TURK_UP.indexOf(ch);
+            out += TURK_UP[n - 1 - idx];
+        } else if(TURK_LOW.includes(ch)){
+            const idx = TURK_LOW.indexOf(ch);
+            out += TURK_LOW[n - 1 - idx];
+        } else {
+            out += ch;
+        }
     }
-  }
-  return out;
+    return out;
 }
 
 // unicode güvenli base64 dönüşüm helpers
 function utf8ToBase64(str){
-  return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function(match, p1){
-    return String.fromCharCode('0x' + p1);
-  }));
+    return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function(match, p1){
+        return String.fromCharCode('0x' + p1);
+    }));
 }
 function base64ToUtf8(b64){
-  const bin = atob(b64);
-  const bytes = [];
-  for(let i=0;i<bin.length;i++) bytes.push('%' + ('00' + bin.charCodeAt(i).toString(16)).slice(-2));
-  return decodeURIComponent(bytes.join(''));
+    const bin = atob(b64);
+    const bytes = [];
+    for(let i=0;i<bin.length;i++) bytes.push('%' + ('00' + bin.charCodeAt(i).toString(16)).slice(-2));
+    return decodeURIComponent(bytes.join(''));
 }
 
 function tripleEncrypt(text, shift){
-  const step1 = caesarEncryptTr(text, shift);
-  const step2 = atbashTr(step1);
-  const step3 = utf8ToBase64(step2);
-  return step3;
+    const step1 = caesarEncryptTr(text, shift);
+    const step2 = atbashTr(step1);
+    const step3 = utf8ToBase64(step2);
+    return step3;
 }
 
 function tripleDecrypt(b64, shift){
-  let step2;
-  try{
-    step2 = base64ToUtf8(b64);
-  } catch(e){
-    return '[Hata] Geçersiz Base64 veya bozuk veri.';
-  }
-  const step1 = atbashTr(step2);
-  const step0 = caesarDecryptTr(step1, shift);
-  return step0;
+    let step2;
+    try{
+        step2 = base64ToUtf8(b64);
+    } catch(e){
+        return '[Hata] Geçersiz Base64 veya bozuk veri.';
+    }
+    const step1 = atbashTr(step2);
+    const step0 = caesarDecryptTr(step1, shift);
+    return step0;
 }
 
 // UI
@@ -122,27 +201,57 @@ const shiftEl = document.getElementById('shift');
 const runBtn = document.getElementById('run');
 const clearBtn = document.getElementById('clear');
 const copyBtn = document.getElementById('copyOut');
+const themeToggleBtn = document.getElementById('themeToggle'); // Yeni buton
 
+// Temayı kontrol eden ana fonksiyon
+function toggleTheme() {
+    const isDarkMode = document.body.classList.toggle('dark-mode');
+    
+    // Buton metnini güncelle
+    themeToggleBtn.value = isDarkMode ? 'Açık Tema' : 'Koyu Tema';
+
+    // Kullanıcının tercihini kaydet (Sayfa yenilendiğinde hatırlanması için)
+    localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+}
+
+// Sayfa yüklendiğinde temayı kontrol et
+function loadTheme() {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+        document.body.classList.add('dark-mode');
+        themeToggleBtn.value = 'Açık Tema';
+    } else {
+        // savedTheme 'light' ise veya hiç kaydedilmemişse varsayılan (açık) tema kalır.
+        themeToggleBtn.value = 'Koyu Tema';
+    }
+}
+
+// Olay dinleyicileri
 runBtn.addEventListener('click', ()=>{
-  const mode = modeEl.value;
-  const shift = parseInt(shiftEl.value,10) || 0;
-  const text = inputEl.value || '';
-  if(mode === 'encrypt'){
-    outputEl.textContent = tripleEncrypt(text, shift);
-  } else {
-    outputEl.textContent = tripleDecrypt(text, shift);
-  }
+    const mode = modeEl.value;
+    const shift = parseInt(shiftEl.value,10) || 0;
+    const text = inputEl.value || '';
+    if(mode === 'encrypt'){
+        outputEl.textContent = tripleEncrypt(text, shift);
+    } else {
+        outputEl.textContent = tripleDecrypt(text, shift);
+    }
 });
 
 clearBtn.addEventListener('click', ()=>{inputEl.value=''; outputEl.textContent='';});
 
 copyBtn.addEventListener('click', ()=>{
-  const txt = outputEl.textContent;
-  if(!txt) return;
-  navigator.clipboard.writeText(txt).then(()=>{
-    alert('Çıktı panoya kopyalandı.');
-  }, ()=>{ alert('Kopyalama başarısız. Manuel seçip kopyalayın.'); });
+    const txt = outputEl.textContent;
+    if(!txt) return;
+    navigator.clipboard.writeText(txt).then(()=>{
+        alert('Çıktı panoya kopyalandı.');
+    }, ()=>{ alert('Kopyalama başarısız. Manuel seçip kopyalayın.'); });
 });
+
+themeToggleBtn.addEventListener('click', toggleTheme); // Yeni olay dinleyicisi
+
+// Sayfa yüklendiğinde temayı yükle
+window.onload = loadTheme; 
 </script>
 </body>
 </html>
